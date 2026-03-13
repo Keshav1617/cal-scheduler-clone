@@ -1,4 +1,4 @@
-const { v4: uuidv4 } = require('uuid');
+const { randomUUID: uuidv4 } = require('crypto');
 const AppError = require('../utils/AppError');
 const EventType = require('../models/EventType');
 const Booking = require('../models/Booking');
