@@ -319,8 +319,8 @@ function EventTypeEditPage() {
                 <Button 
                    onClick={() => handleSave()} 
                    isLoading={isSaving}
-                   variant="secondary"
-                   className="bg-white text-black hover:bg-zinc-200 px-4 h-[36px] rounded-[8px] font-bold text-[13px] tracking-tight"
+                   variant="primary"
+                   className="px-4 h-[36px] rounded-[8px] font-bold text-[13px] tracking-tight"
                 >
                    Save
                 </Button>

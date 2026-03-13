@@ -25,6 +25,15 @@ function getTransporter() {
 
   transporter.fromAddress = SMTP_FROM || SMTP_USER;
 
+  // Verify connection configuration
+  transporter.verify((error, success) => {
+    if (error) {
+      console.error('SMTP Connection Error:', error);
+    } else {
+      console.log('SMTP Server is ready to take our messages');
+    }
+  });
+
   return transporter;
 }
 
