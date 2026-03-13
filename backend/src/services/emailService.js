@@ -1,41 +1,60 @@
 const nodemailer = require('nodemailer');
 
+let transporterInstance = null;
+
+/**
+ * Returns a singleton transporter instance
+ */
 function getTransporter() {
+  if (transporterInstance) return transporterInstance;
+
   const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM } = process.env;
 
   if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS) {
-    // eslint-disable-next-line no-console
     console.warn('Email service skipped: Missing SMTP environment variables (HOST, PORT, USER, or PASS)');
     return null;
   }
 
-  const transporter = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: Number(SMTP_PORT),
-    secure: Number(SMTP_PORT) === 465,
+  const transportConfig = {
     auth: {
       user: SMTP_USER,
       pass: SMTP_PASS,
     },
-    // For Gmail port 587
+    // For Gmail port 587 or 465
     tls: {
       rejectUnauthorized: false
     }
-  });
+  };
 
-  transporter.fromAddress = SMTP_FROM || SMTP_USER;
+  // Use 'service' shortcut for Gmail as it provides better defaults for ports/tls
+  if (SMTP_HOST.includes('gmail.com')) {
+    transportConfig.service = 'gmail';
+  } else {
+    transportConfig.host = SMTP_HOST;
+    transportConfig.port = Number(SMTP_PORT);
+    transportConfig.secure = Number(SMTP_PORT) === 465;
+  }
 
-  // Verify connection configuration
-  transporter.verify((error, success) => {
+  transporterInstance = nodemailer.createTransport(transportConfig);
+  transporterInstance.fromAddress = SMTP_FROM || SMTP_USER;
+
+  // VERIFY IMMEDIATELY ON STARTUP (This will show up in Render logs)
+  console.log('--- SMTP DIAGNOSTIC START ---');
+  transporterInstance.verify((error, success) => {
     if (error) {
-      console.error('SMTP Connection Error:', error);
+      console.error('CRITICAL: SMTP Connection Failed:', error.message);
+      console.error('Stack:', error.stack);
     } else {
-      console.log('SMTP Server is ready to take our messages');
+      console.log('SUCCESS: SMTP Server is ready to deliver emails');
     }
+    console.log('--- SMTP DIAGNOSTIC END ---');
   });
 
-  return transporter;
+  return transporterInstance;
 }
+
+// Initialize immediately so we see the log on server start
+getTransporter();
 
 async function sendBookingConfirmation(booking) {
   const tx = getTransporter();
