@@ -14,12 +14,15 @@ const errorHandler = require('./middleware/errorHandler');
 const app = express();
 
 app.use(helmet());
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  process.env.CLIENT_URL ? process.env.CLIENT_URL.replace(/\/$/, '') : undefined,
+  "http://localhost:5173"
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: [
-      process.env.CLIENT_URL,
-      "http://localhost:5173"
-    ],
+    origin: allowedOrigins,
     credentials: true
   })
 );
