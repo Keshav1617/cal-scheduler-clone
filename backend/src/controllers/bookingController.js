@@ -65,12 +65,15 @@ async function cancel(req, res, next) {
     const { rows } = await Booking.cancel(uid);
     const updated = rows[0];
 
-    try {
-      await sendCancellationEmail(updated);
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.warn('Failed to send cancellation email:', err.message);
-    }
+    // Trigger email in background
+    setImmediate(async () => {
+      try {
+        await sendCancellationEmail(updated);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.warn('Failed to send cancellation email:', err.message);
+      }
+    });
 
     return success(res, updated, 'Booking cancelled');
   } catch (err) {
