@@ -58,13 +58,18 @@ async function sendBookingConfirmation(booking) {
   `;
 
   console.log(`Sending booking confirmation email to ${booker_email}...`);
-  await tx.sendMail({
-    from: tx.fromAddress,
-    to: booker_email,
-    subject,
-    html,
-  });
-  console.log(`Booking confirmation email sent successfully to ${booker_email}`);
+  try {
+    await tx.sendMail({
+      from: tx.fromAddress,
+      to: booker_email,
+      subject,
+      html,
+    });
+    console.log(`Booking confirmation email sent successfully to ${booker_email}`);
+  } catch (error) {
+    console.error(`ERROR: Failed to send booking confirmation email to ${booker_email}:`, error.stack || error.message);
+    throw error;
+  }
 }
 
 async function sendCancellationEmail(booking) {
@@ -84,12 +89,19 @@ async function sendCancellationEmail(booking) {
     `Reference: ${uid}`,
   ].join('\n');
 
-  await tx.sendMail({
-    from: tx.fromAddress,
-    to: booker_email,
-    subject,
-    text,
-  });
+  console.log(`Sending cancellation email to ${booker_email}...`);
+  try {
+    await tx.sendMail({
+      from: tx.fromAddress,
+      to: booker_email,
+      subject,
+      text,
+    });
+    console.log(`Cancellation email sent successfully to ${booker_email}`);
+  } catch (error) {
+    console.error(`ERROR: Failed to send cancellation email to ${booker_email}:`, error.stack || error.message);
+    throw error;
+  }
 }
 
 module.exports = {
