@@ -51,17 +51,19 @@ async function createBooking(eventTypeId, bookerName, bookerEmail, dateStr, time
 
   const booking = rows[0];
 
-  // 4. Email is optional; ignore errors
-  try {
-    const emailService = require('./emailService');
-    // Fetch full details with titles/names for the email
-    const { rows: fullBookingRows } = await Booking.findById(uid);
-    const fullBooking = fullBookingRows[0] || booking;
-    await emailService.sendBookingConfirmation(fullBooking);
-  } catch (err) {
-    // eslint-disable-next-line no-console
-    console.warn('Failed to send booking confirmation email:', err.message);
-  }
+  // 4. Email is optional; trigger in background to avoid blocking the response
+  setImmediate(async () => {
+    try {
+      const emailService = require('./emailService');
+      // Fetch full details with titles/names for the email
+      const { rows: fullBookingRows } = await Booking.findById(uid);
+      const fullBooking = fullBookingRows[0] || booking;
+      await emailService.sendBookingConfirmation(fullBooking);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.warn('Failed to send booking confirmation email:', err.message);
+    }
+  });
 
   return booking;
 }
