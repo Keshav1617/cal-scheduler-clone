@@ -6,9 +6,7 @@ async function findById(id) {
 }
 
 async function findByUsername(username) {
-  // Assuming name is used as the identifier for now if there's no username column
-  // Or if there is, we'll try to match it.
-  const rows = await query('SELECT * FROM users WHERE name = ? OR email LIKE ? LIMIT 1', [username, `%${username}%`]);
+  const rows = await query('SELECT * FROM users WHERE username = ? OR email = ? LIMIT 1', [username, username]);
   return { rows };
 }
 
