@@ -3,10 +3,9 @@ const nodemailer = require('nodemailer');
 function getTransporter() {
   const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM } = process.env;
 
-  if (!SMTP_HOST || !SMTP_PORT) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn('Email service skipped: SMTP_HOST or SMTP_PORT not defined in .env');
-    }
+  if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS) {
+    // eslint-disable-next-line no-console
+    console.warn('Email service skipped: Missing SMTP environment variables (HOST, PORT, USER, or PASS)');
     return null;
   }
 
@@ -14,12 +13,14 @@ function getTransporter() {
     host: SMTP_HOST,
     port: Number(SMTP_PORT),
     secure: Number(SMTP_PORT) === 465,
-    auth: SMTP_USER
-      ? {
-          user: SMTP_USER,
-          pass: SMTP_PASS,
-        }
-      : undefined,
+    auth: {
+      user: SMTP_USER,
+      pass: SMTP_PASS,
+    },
+    // For Gmail port 587
+    tls: {
+      rejectUnauthorized: false
+    }
   });
 
   transporter.fromAddress = SMTP_FROM || SMTP_USER;
@@ -56,12 +57,14 @@ async function sendBookingConfirmation(booking) {
     </div>
   `;
 
+  console.log(`Sending booking confirmation email to ${booker_email}...`);
   await tx.sendMail({
     from: tx.fromAddress,
     to: booker_email,
     subject,
     html,
   });
+  console.log(`Booking confirmation email sent successfully to ${booker_email}`);
 }
 
 async function sendCancellationEmail(booking) {
